@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from  sqlalchemy import (select)
 
 import models
-from library_book.database import get_session, engine
+from library_project.database.config import get_session, engine
 from models import Author as AuthorModel, Book as BookModel
 from schema import NewBook
 
