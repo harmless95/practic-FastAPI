@@ -27,8 +27,12 @@ class Author(BaseModel):
     class Config:
         orm_mode = True
 
+class NewAuthor(BaseModel):
+    name: str
+    surname: str
+
 class NewBook(Book):
-    author: Author
+    author: NewAuthor
 
     class Config:
         orm_mode = True
