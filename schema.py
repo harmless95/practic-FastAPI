@@ -1,15 +1,10 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional
+from typing import Optional, List
 from datetime import date
 
 
-class Author(BaseModel):
-    name: str
-    surname: str
-
 class Book(BaseModel):
     title: str
-    author: Optional[Author] = None
     year_of_manufacture: date = Field(
         ...,
         description="Год выпуска книги"
@@ -20,3 +15,8 @@ class Book(BaseModel):
         if v.year > 2025:
             raise ValueError("Год не может быть больше 2025 года")
         return v
+
+class Author(BaseModel):
+    name: str
+    surname: str
+    books: Optional[List[Book]] = None
