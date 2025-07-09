@@ -1,4 +1,4 @@
-from database import Base
+from library_book.database import Base
 from sqlalchemy import Column, String, Integer, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
