@@ -16,7 +16,19 @@ class Book(BaseModel):
             raise ValueError("Год не может быть больше 2025 года")
         return v
 
+    class Config:
+        orm_mode = True
+
 class Author(BaseModel):
     name: str
     surname: str
     books: Optional[List[Book]] = None
+
+    class Config:
+        orm_mode = True
+
+class NewBook(Book):
+    author: Author
+
+    class Config:
+        orm_mode = True
