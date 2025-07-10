@@ -3,7 +3,6 @@ from sqlalchemy import Column, String, Integer, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
 
-
 class Author(Base):
     __tablename__ = "authors"
 
