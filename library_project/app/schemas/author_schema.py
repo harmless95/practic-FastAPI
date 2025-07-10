@@ -1,11 +1,11 @@
-from typing import Optional, List
-from pydantic import BaseModel
+from typing import List, Annotated
+from pydantic import BaseModel, Field
 from .book_schema import Book
 
 class Author(BaseModel):
     name: str
     surname: str
-    books: Optional[List[Book]] = None
+    books: Annotated[List[Book], Field(default_factory=list)]
 
     class Config:
         orm_mode = True
