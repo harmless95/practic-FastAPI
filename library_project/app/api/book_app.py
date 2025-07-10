@@ -5,7 +5,7 @@ from library_project.app.models_file.models import Author as AuthorModel, Book a
 from library_project.app.schemas.create_new_book import NewBook
 from library_project.database.config import get_session
 
-router = APIRouter(prefix="/book")
+router = APIRouter(prefix="/book", tags=["Book"])
 
 @router.post("/add")
 async def add_new_book(data: NewBook, session: AsyncSession = Depends(get_session)):

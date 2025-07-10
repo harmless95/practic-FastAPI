@@ -6,7 +6,7 @@ from sqlalchemy import select
 from library_project.database.config import get_session
 from library_project.app.models_file.models import Author as AuthorModel
 
-router = APIRouter(prefix="/author")
+router = APIRouter(prefix="/author", tags=["Author"])
 
 
 @router.get("/{user_id}/")
