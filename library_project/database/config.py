@@ -1,8 +1,11 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
 
-database_create = "sqlite+aiosqlite:///./library.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+database_create = f"sqlite+aiosqlite:///{os.path.join(BASE_DIR, "library.db")}"
+
 engine = create_async_engine(database_create, echo=True)
 async_session = sessionmaker(
     engine, expire_on_commit=False, class_=AsyncSession
