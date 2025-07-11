@@ -1,20 +1,21 @@
 import uvicorn
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
-from library_project.app.models_file import models
-from library_project.database.config import engine
-from library_project.app.api.author_app import router as author_router
-from library_project.app.api.book_app import router as book_router
+from library_project.core_app.models import Base, db_helper
+from library_project.app.api import author_router, book_router
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with db_helper.engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(author_router)
 app.include_router(book_router)
-
-
-@app.on_event("startup")
-async def on_startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(models.Base.metadata.create_all)
 
 
 @app.get("/")

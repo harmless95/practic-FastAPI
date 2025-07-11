@@ -3,10 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException, Path, APIRouter
 from sqlalchemy import select
 
-from library_project.database.config import get_session
-from library_project.app.models_file.models import Author as AuthorModel
+from library_project.core_app.models import db_helper
+from library_project.core_app.models import Author as AuthorModel
 
 router = APIRouter(prefix="/author", tags=["Author"])
+get_session = db_helper.session_factory
 
 
 @router.get("/{user_id}/")
