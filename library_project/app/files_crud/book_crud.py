@@ -26,11 +26,16 @@ async def new_book(session: AsyncSession, data: NewBook) -> NewBook:
     )
     author = result.scalars().first()
     if not author:
-        author = AuthorModel(name=data.author.name, surname=data.author.surname)
+        author = AuthorModel(
+            name=data.author.name,
+            surname=data.author.surname,
+        )
         session.add(author)
         await session.flush()
     book = BookModel(
-        title=data.title, year_of_manufacture=data.year_of_manufacture, author=author
+        title=data.title,
+        year_of_manufacture=data.year_of_manufacture,
+        author=author,
     )
     session.add(book)
     await session.commit()
