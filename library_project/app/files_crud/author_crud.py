@@ -1,9 +1,11 @@
 from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from library_project.core_app.models import Author as AuthorModel
 from library_project.app.schemas.create_new_author import NewAuthor
+from library_project.app.schemas.author_schema import Author
 
 
 async def get_authors(session: AsyncSession) -> list[AuthorModel]:
@@ -17,9 +19,11 @@ async def get_author(session: AsyncSession, author_id: int) -> AuthorModel | Non
     return await session.get(AuthorModel, author_id)
 
 
-async def create_author(session: AsyncSession, data: NewAuthor) -> NewAuthor:
+async def create_author(session: AsyncSession, data: NewAuthor) -> Author:
     result = await session.execute(
-        select(AuthorModel).where(
+        select(AuthorModel)
+        .options(selectinload(AuthorModel.books))
+        .where(
             AuthorModel.name == data.name,
             AuthorModel.surname == data.surname,
         )
@@ -33,7 +37,5 @@ async def create_author(session: AsyncSession, data: NewAuthor) -> NewAuthor:
         session.add(author)
         await session.flush()
         await session.commit()
-    return NewAuthor(
-        name=data.name,
-        surname=data.surname,
-    )
+        await session.refresh(author, attribute_names=["books"])
+    return Author.model_validate(author)
