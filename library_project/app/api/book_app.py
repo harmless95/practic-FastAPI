@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, HTTPException, status
 
 from library_project.core_app.models import get_session
 
@@ -17,7 +17,13 @@ async def get_all_books(session: AsyncSession = Depends(get_session)):
 
 @router.get("/{book_id}/")
 async def get_book_by_id(book_id: int, session: AsyncSession = Depends(get_session)):
-    return await book_by_id(session=session, book_id=book_id)
+    book = await book_by_id(session=session, book_id=book_id)
+    if book:
+        return book
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Book {book_id} not found!",
+    )
 
 
 @router.post("/add")
