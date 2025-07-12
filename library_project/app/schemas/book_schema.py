@@ -7,7 +7,7 @@ class Book(BaseModel):
     title: str
     year_of_manufacture: Annotated[
         date,
-        Field(description="Год выпуска книги")
+        Field(description="Год выпуска книги"),
     ]
 
     @field_validator("year_of_manufacture")
@@ -17,4 +17,4 @@ class Book(BaseModel):
         return v
 
     class Config:
-        orm_mode = True
+        from_attributes = True
