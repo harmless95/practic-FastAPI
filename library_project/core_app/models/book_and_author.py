@@ -21,6 +21,11 @@ class Book(Base):
     title: Mapped[str] = mapped_column(nullable=False)
     year_of_manufacture: Mapped[date] = mapped_column(nullable=False)
     author_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("authors.id", ondelete="CASCADE"), nullable=False
+        Integer,
+        ForeignKey("authors.id", ondelete="CASCADE"),
+        nullable=False,
     )
-    author: Mapped["Author"] = relationship("Author", back_populates="books")
+    author: Mapped["Author"] = relationship(
+        "Author",
+        back_populates="books",
+    )
