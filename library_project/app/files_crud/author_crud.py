@@ -9,18 +9,29 @@ from library_project.app.schemas.author_schema import Author
 
 
 async def get_authors(session: AsyncSession) -> list[AuthorModel]:
-    stmt = select(AuthorModel).order_by(AuthorModel.id)
+    stmt = (
+        select(AuthorModel)
+        .options(selectinload(AuthorModel.books))
+        .order_by(AuthorModel.id)
+    )
     result: Result = await session.execute(stmt)
     authors = result.scalars().all()
     return list(authors)
 
 
 async def get_author(session: AsyncSession, author_id: int) -> AuthorModel | None:
-    return await session.get(AuthorModel, author_id)
+    stmt = (
+        select(AuthorModel)
+        .options(selectinload(AuthorModel.books))
+        .where(AuthorModel.id == author_id)
+    )
+    result: Result = await session.execute(stmt)
+    author = result.scalars().first()
+    return author
 
 
 async def create_author(session: AsyncSession, data: NewAuthor) -> Author:
-    result = await session.execute(
+    result: Result = await session.execute(
         select(AuthorModel)
         .options(selectinload(AuthorModel.books))
         .where(
@@ -37,5 +48,7 @@ async def create_author(session: AsyncSession, data: NewAuthor) -> Author:
         session.add(author)
         await session.flush()
         await session.commit()
+        await session.refresh(author, attribute_names=["books"])
+    else:
         await session.refresh(author, attribute_names=["books"])
     return Author.model_validate(author)
