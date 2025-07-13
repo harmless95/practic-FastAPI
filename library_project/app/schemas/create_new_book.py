@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from .book_schema import Book
-from .create_new_author import NewAuthor
+from .author_schema import NewAuthor
 
 
 class NewBook(Book):

@@ -4,8 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from library_project.core_app.models import Author as AuthorModel
-from library_project.app.schemas.create_new_author import NewAuthor
-from library_project.app.schemas.author_schema import Author
+from library_project.app.schemas.author_schema import (
+    Author,
+    AuthorUpdate,
+    NewAuthor,
+    AuthorUpdatePartial,
+)
 
 
 async def get_authors(session: AsyncSession) -> list[AuthorModel]:
@@ -52,3 +56,23 @@ async def create_author(session: AsyncSession, data: NewAuthor) -> Author:
     else:
         await session.refresh(author, attribute_names=["books"])
     return Author.model_validate(author)
+
+
+async def update_author(
+    session: AsyncSession,
+    author: Author,
+    author_update: AuthorUpdate | AuthorUpdatePartial,
+    partial: bool = False,
+) -> Author:
+    for name, values in author_update.model_dump(exclude_unset=partial).items():
+        setattr(author, name, values)
+    await session.commit()
+    return author
+
+
+async def delete_author(
+    session: AsyncSession,
+    author: Author,
+) -> None:
+    await session.delete(author)
+    await session.commit()

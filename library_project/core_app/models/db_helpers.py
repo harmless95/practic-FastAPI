@@ -35,8 +35,3 @@ class DatabaseHelper:
 
 
 db_helper = DatabaseHelper(url=settings.db_url, echo=settings.db_echo)
-
-
-# async def get_session() -> AsyncGenerator[AsyncSession, None]:
-#     async with db_helper.session_factory() as session:
-#         yield session
