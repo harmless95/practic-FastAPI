@@ -1,6 +1,11 @@
+from asyncio import current_task
 from typing import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    async_sessionmaker,
+    async_scoped_session,
+)
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from library_project.core_app.config_db import settings
@@ -16,10 +21,22 @@ class DatabaseHelper:
             expire_on_commit=False,
         )
 
+    def get_scoped_session(self):
+        session = async_scoped_session(
+            session_factory=self.session_factory,
+            scopefunc=current_task,
+        )
+        return session
+
+    async def scoped_session_depends(self):
+        session = self.get_scoped_session()
+        yield session
+        await session.close()
+
 
 db_helper = DatabaseHelper(url=settings.db_url, echo=settings.db_echo)
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async with db_helper.session_factory() as session:
-        yield session
+# async def get_session() -> AsyncGenerator[AsyncSession, None]:
+#     async with db_helper.session_factory() as session:
+#         yield session
