@@ -4,6 +4,7 @@ from sqlalchemy.engine import Result
 
 from library_project.core_app.models import Book as BookModel, Author as AuthorModel
 from library_project.app.schemas.create_new_book import NewBook
+from library_project.app.schemas.book_schema import Book, BookUpdate, BookUpdatePartial
 
 
 async def get_books(session: AsyncSession) -> list[BookModel]:
@@ -45,3 +46,23 @@ async def new_book(session: AsyncSession, data: NewBook) -> NewBook:
         year_of_manufacture=book.year_of_manufacture,
         author=data.author,
     )
+
+
+async def update_book(
+    session: AsyncSession,
+    book: Book,
+    book_update: BookUpdate | BookUpdatePartial,
+    partial: bool = False,
+) -> Book:
+    for name, values in book_update.model_dump(exclude_unset=partial).items():
+        setattr(book, name, values)
+    await session.commit()
+    return book
+
+
+async def delete_book(
+    session: AsyncSession,
+    book: Book,
+) -> None:
+    await session.delete(book)
+    await session.commit()

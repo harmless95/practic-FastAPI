@@ -70,7 +70,10 @@ async def update_author_by_id(
     ),
 ):
     return await update_author(
-        session=session, author=author, author_update=author_update, partial=True
+        session=session,
+        author=author,
+        author_update=author_update,
+        partial=True,
     )
 
 
