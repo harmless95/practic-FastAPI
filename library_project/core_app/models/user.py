@@ -11,7 +11,8 @@ if TYPE_CHECKING:
 
 
 class User(Base):
-    username: Mapped[str] = mapped_column(String(32), unique=True)
+    user_name: Mapped[str] = mapped_column(String(32), unique=True)
+    user_surname: Mapped[str] = mapped_column(String(50))
 
     posts: Mapped[list["Post"]] = relationship(back_populates="user")
     profile: Mapped["Profile"] = relationship(back_populates="user")
