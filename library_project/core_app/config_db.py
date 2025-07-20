@@ -3,11 +3,12 @@ from pydantic import BaseModel
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
+PATH_DB = (BASE_DIR / "library.db").as_posix()
 
 
 class DbSettings(BaseModel):
-    url: str = f"sqlite+aiosqlite:///{(BASE_DIR / 'library.db').as_posix()}"
-    echo: bool = True
+    url: str = f"sqlite+aiosqlite:///{PATH_DB}"
+    echo: bool = False
 
 
 class Settings(BaseSettings):
