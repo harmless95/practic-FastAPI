@@ -7,6 +7,7 @@ class Book(BaseModel):
     id: int
     model_config = ConfigDict(from_attributes=True)
     title: str
+    price: int
     year_of_manufacture: Annotated[
         date,
         Field(description="Год выпуска книги"),
@@ -27,3 +28,4 @@ class BookUpdatePartial(Book):
     model_config = ConfigDict(from_attributes=True)
     title: str | None = None
     year_of_manufacture: Optional[date] | None = None
+    price: int
