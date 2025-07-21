@@ -1,11 +1,20 @@
 import asyncio
+from datetime import date
 
 from celery.bin.result import result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, Result
 from sqlalchemy.orm import selectinload, joinedload
 
-from library_project.core_app.models import db_helper, User, Profile, Post
+from library_project.core_app.models import (
+    db_helper,
+    User,
+    Profile,
+    Post,
+    Order,
+    Book,
+    Author,
+)
 
 
 async def create_user(session: AsyncSession, user_name: str, user_surname: str) -> User:
@@ -124,45 +133,153 @@ async def get_profiles_with_users_and_users_with_posts(session: AsyncSession):
         print(profile.user.posts)
 
 
+async def create_order(
+    session: AsyncSession,
+    promocode: str | None = None,
+) -> Order:
+    order = Order(promocode=promocode)
+    session.add(order)
+    await session.commit()
+    return order
+
+
+async def create_book(
+    session: AsyncSession,
+    data,
+) -> Book:
+    author_data = data["author"]
+    author = Author(name=author_data["name"], surname=author_data["surname"])
+    session.add(author)
+    await session.flush()
+
+    book = Book(
+        title=data["title"],
+        year_of_manufacture=data["year_of_manufacture"],
+        price=data["price"],
+        author=author,
+    )
+    session.add(book)
+    await session.commit()
+    return book
+
+
+async def create_order_book(session: AsyncSession):
+    order_1 = await create_order(session=session)
+    order_promo = await create_order(session=session, promocode="promo")
+    data_frost = {
+        "title": "frost and red nose",
+        "year_of_manufacture": date(1964, 1, 1),
+        "price": 2000,
+        "author": {
+            "name": "Nikolai",
+            "surname": "Nekrasov",
+        },
+    }
+    data_onegin = {
+        "title": "Eugene Onegin",
+        "year_of_manufacture": date(1958, 1, 1),
+        "price": 3000,
+        "author": {
+            "name": "Alexander",
+            "surname": "Pushkin",
+        },
+    }
+    data_nose = {
+        "title": "Nose",
+        "year_of_manufacture": date(1936, 1, 1),
+        "price": 3500,
+        "author": {
+            "name": "Nikolai",
+            "surname": "Gogol",
+        },
+    }
+    frost = await create_book(
+        session=session,
+        data=data_frost,
+    )
+    onegin = await create_book(
+        session=session,
+        data=data_onegin,
+    )
+    nose = await create_book(
+        session=session,
+        data=data_nose,
+    )
+    order_1 = await session.scalar(
+        select(Order).where(Order.id == order_1.id).options(selectinload(Order.books)),
+    )
+    order_promo = await session.scalar(
+        select(Order)
+        .where(Order.id == order_promo.id)
+        .options(selectinload(Order.books)),
+    )
+
+    order_1.books.append(frost)
+    order_1.books.append(nose)
+    order_promo.books.append(nose)
+    order_promo.books.append(onegin)
+    await session.commit()
+
+
+async def get_orders_with_books(session: AsyncSession) -> list[Order]:
+    stmt = select(Order).options(selectinload(Order.books)).order_by(Order.id)
+    orders = await session.scalars(stmt)
+    return list(orders)
+
+
+async def main_relations(session: AsyncSession):
+    # await create_user(session=session, user_name="vit", user_surname="zah")
+    # await create_user(session=session, user_name="alice", user_surname="Smith")
+    # user_vit = await get_user_by_username(session=session, user_name="vit")
+    # # # await get_user_by_username(session=session, user_name="tt")
+    # user_john = await get_user_by_username(
+    #     session=session, user_name="john", user_surname="Smith"
+    # )
+    # await create_profile(
+    #     session=session,
+    #     user_id=user_vit.id,
+    #     first_name=user_vit.user_name,
+    # )
+    #
+    # await create_profile(
+    #     session=session,
+    #     user_id=user_john.id,
+    #     first_name=user_john.user_name,
+    #     last_name=user_john.user_surname,
+    # )
+    # await show_users_with_profiles(session=session)
+    # await create_post(
+    #     session,
+    #     user_vit.id,
+    #     "SQL 2.0",
+    #     "SQL VIT",
+    # )
+    # await create_post(
+    #     session,
+    #     user_john.id,
+    #     "FASTAPI intro",
+    #     "FASTAPI advanced",
+    #     "FastAPI more",
+    # )
+    # await get_posts(session=session)
+    # await get_post_with_author(session=session)
+    # await get_users_posts_and_profile(session=session)
+    await get_profiles_with_users_and_users_with_posts(session=session)
+
+
+async def demo_m2m(session: AsyncSession):
+    # await create_order_book(session=session)
+    orders = await get_orders_with_books(session=session)
+    for order in orders:
+        print(order.id, order.promocode, order.create_at, "books:")
+        for book in order.books:
+            print("-", book.id, book.title, book.year_of_manufacture, book.price)
+
+
 async def main():
     async with db_helper.session_factory() as session:
-        # await create_user(session=session, user_name="vit", user_surname="zah")
-        # await create_user(session=session, user_name="alice", user_surname="Smith")
-        # user_vit = await get_user_by_username(session=session, user_name="vit")
-        # # # await get_user_by_username(session=session, user_name="tt")
-        # user_john = await get_user_by_username(
-        #     session=session, user_name="john", user_surname="Smith"
-        # )
-        # await create_profile(
-        #     session=session,
-        #     user_id=user_vit.id,
-        #     first_name=user_vit.user_name,
-        # )
-        #
-        # await create_profile(
-        #     session=session,
-        #     user_id=user_john.id,
-        #     first_name=user_john.user_name,
-        #     last_name=user_john.user_surname,
-        # )
-        # await show_users_with_profiles(session=session)
-        # await create_post(
-        #     session,
-        #     user_vit.id,
-        #     "SQL 2.0",
-        #     "SQL VIT",
-        # )
-        # await create_post(
-        #     session,
-        #     user_john.id,
-        #     "FASTAPI intro",
-        #     "FASTAPI advanced",
-        #     "FastAPI more",
-        # )
-        # await get_posts(session=session)
-        # await get_post_with_author(session=session)
-        # await get_users_posts_and_profile(session=session)
-        await get_profiles_with_users_and_users_with_posts(session=session)
+        # await main_relations(session=session)
+        await demo_m2m(session)
 
 
 if __name__ == "__main__":
