@@ -4,10 +4,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import func
 
 from .base import Base
-from .order_book_association import order_book_association_table
+
 
 if TYPE_CHECKING:
     from .book import Book
+    from .order_book_association import OrderBookAssociation
 
 
 class Order(Base):
@@ -15,8 +16,12 @@ class Order(Base):
     create_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), default=datetime.now()
     )
-    books: Mapped[list["Book"]] = relationship(
-        secondary=order_book_association_table,
-        back_populates="orders",
-        # lazy="noload",
+    # books: Mapped[list["Book"]] = relationship(
+    #     secondary="order_book_association",
+    #     back_populates="orders",
+    #     # lazy="noload",
+    # )
+
+    book_details: Mapped[list["OrderBookAssociation"]] = relationship(
+        back_populates="order",
     )
