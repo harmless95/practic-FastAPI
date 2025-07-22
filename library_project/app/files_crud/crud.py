@@ -14,6 +14,7 @@ from library_project.core_app.models import (
     Order,
     Book,
     Author,
+    OrderBookAssociation,
 )
 
 
@@ -222,9 +223,75 @@ async def create_order_book(session: AsyncSession):
 
 
 async def get_orders_with_books(session: AsyncSession) -> list[Order]:
-    stmt = select(Order).options(selectinload(Order.books)).order_by(Order.id)
+    stmt = (
+        select(Order)
+        .options(
+            selectinload(Order.book_details),
+        )
+        .order_by(Order.id)
+    )
     orders = await session.scalars(stmt)
     return list(orders)
+
+
+async def get_orders_with_books_assoc(session: AsyncSession) -> list[Order]:
+    stmt = (
+        select(Order)
+        .options(
+            selectinload(Order.book_details).joinedload(OrderBookAssociation.book),
+        )
+        .order_by(Order.id)
+    )
+    orders = await session.scalars(stmt)
+    return list(orders)
+
+
+async def demo_get_orders_with_book_through_secondary(session: AsyncSession):
+    orders = await get_orders_with_books(session=session)
+    for order in orders:
+        print(order.id, order.promocode, order.create_at, "books:")
+        for book in order.books:
+            print("-", book.id, book.title, book.year_of_manufacture, book.price)
+
+
+async def demo_get_orders_with_book_with_assoc(session: AsyncSession):
+    orders = await get_orders_with_books_assoc(session=session)
+
+    for order in orders:
+        print(order.id, order.promocode, order.create_at, "books:")
+        for order_book in order.book_details:  # type: OrderBookAssociation
+            print(
+                "-",
+                order_book.book.id,
+                order_book.book.title,
+                order_book.book.year_of_manufacture,
+                order_book.book.price,
+                "qty:",
+                order_book.count,
+            )
+
+
+async def create_book_family(session: AsyncSession):
+    data_family = {
+        "title": "Family happiness",
+        "year_of_manufacture": date(1959, 1, 1),
+        "price": 5500,
+        "author": {
+            "name": "Leo",
+            "surname": "Tolstoy",
+        },
+    }
+    orders = await get_orders_with_books_assoc(session=session)
+    book_family = await create_book(session=session, data=data_family)
+    for order in orders:
+        order.book_details.append(
+            OrderBookAssociation(
+                count=1,
+                unit_price=0,
+                book=book_family,
+            )
+        )
+    await session.commit()
 
 
 async def main_relations(session: AsyncSession):
@@ -264,16 +331,15 @@ async def main_relations(session: AsyncSession):
     # await get_posts(session=session)
     # await get_post_with_author(session=session)
     # await get_users_posts_and_profile(session=session)
+
     await get_profiles_with_users_and_users_with_posts(session=session)
 
 
 async def demo_m2m(session: AsyncSession):
     # await create_order_book(session=session)
-    orders = await get_orders_with_books(session=session)
-    for order in orders:
-        print(order.id, order.promocode, order.create_at, "books:")
-        for book in order.books:
-            print("-", book.id, book.title, book.year_of_manufacture, book.price)
+    # await demo_get_orders_with_book_through_secondary(session=session)
+    await demo_get_orders_with_book_with_assoc(session=session)
+    # await create_book_family(session=session)
 
 
 async def main():
